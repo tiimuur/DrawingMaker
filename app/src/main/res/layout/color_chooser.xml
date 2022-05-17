@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="bottom"
+        android:background="@color/white">
+
+        <ImageButton
+            android:id="@+id/brownButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_brown">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/redButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_red">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/orangeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_orange">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/yellowButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_yellow">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/greenButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_green">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/turquoiseButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_turquoise">
+        </ImageButton>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="top"
+        android:background="@color/white">
+
+        <ImageButton
+            android:id="@+id/blueButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_blue">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/purpleButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_purple">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/coralButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_coral">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/whiteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_white">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/greyButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_grey">
+        </ImageButton>
+
+        <ImageButton
+            android:id="@+id/blackButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:src="@drawable/button_black">
+        </ImageButton>
+
+
+    </LinearLayout>
+
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

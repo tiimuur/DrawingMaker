@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brush sizes -->
+    <dimen name="small_brush">30dp</dimen>
+    <integer name="small_size">10</integer>
+    <dimen name="medium_brush">45dp</dimen>
+    <integer name="medium_size">20</integer>
+    <dimen name="large_brush">60dp</dimen>
+    <integer name="large_size">30</integer>
+    <dimen name="button_size">40dp</dimen>
+    <integer name="brown">0xFF660000</integer>
+    <integer name="red">0xFFFF0000</integer>
+    <integer name="orange">0xFFFF6600</integer>
+    <integer name="yellow">0xFFFFCC00</integer>
+    <integer name="green">0xFF009900</integer>
+    <integer name="turquoise">0xFF009999</integer>
+    <integer name="blue">0xFF0000FF</integer>
+    <integer name="purple">0xFF990099</integer>
+    <integer name="coral">0xFFFF6666</integer>
+    <integer name="white">0xFFFFFFFF</integer>
+    <integer name="grey">0xFF555555</integer>
+    <integer name="black">0xFF000000</integer>
+</resources>

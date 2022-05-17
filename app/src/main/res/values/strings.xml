@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Drawing Maker</string>
+    <string name="start_new">New</string>
+    <string name="brush">Brush</string>
+    <string name="erase">Erase</string>
+    <string name="save">Save</string>
+    <string name="colorChanging">colorChanging</string>
+    <string name="paint">Paint</string>
+    <string name="sml">Small</string>
+    <string name="med">Medium</string>
+    <string name="lrg">Large</string>
+    <string name="new_pic">Новый рисунок </string>
+    <string name="new_title">Введите заголовок</string>
+    <string name="create">Создать</string>
+</resources>
