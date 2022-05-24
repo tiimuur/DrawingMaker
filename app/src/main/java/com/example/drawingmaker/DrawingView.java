@@ -3,6 +3,7 @@ package com.example.drawingmaker;
 import android.annotation.SuppressLint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
+import android.util.Log;
 import android.view.View;
 import android.content.Context;
 import android.util.AttributeSet;
@@ -12,6 +13,13 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.view.MotionEvent;
 import android.util.TypedValue;
+
+import androidx.annotation.NonNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 public class DrawingView extends View {
 
@@ -27,6 +35,7 @@ public class DrawingView extends View {
         super(context, attrs);
         setupDrawing();
     }
+
 
     private void setupDrawing() {
         drawPath = new Path();
@@ -44,6 +53,11 @@ public class DrawingView extends View {
         drawPaint.setStrokeWidth(brushSize);
     }
 
+    public void setCanvasBitmap(Bitmap bitmap){
+        Log.d("TAG121212", "Что-то произошло");
+        canvasBitmap = bitmap;
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldW, int oldH) {
         super.onSizeChanged(w, h, oldW, oldH);
@@ -56,10 +70,6 @@ public class DrawingView extends View {
         super.onDraw(canvas);
         canvas.drawBitmap(canvasBitmap, 0, 0, canvasPaint);
         canvas.drawPath(drawPath, drawPaint);
-    }
-
-    private void getDrawing(Bitmap bitmap){
-
     }
 
     public void setLastBrushSize(float lastSize){
@@ -96,6 +106,9 @@ public class DrawingView extends View {
         invalidate();
     }
 
+
+
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -118,5 +131,4 @@ public class DrawingView extends View {
         invalidate();
         return true;
     }
-
 }

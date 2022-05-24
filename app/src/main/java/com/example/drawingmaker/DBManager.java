@@ -24,14 +24,14 @@ public class DBManager {
         db = dbHelper.getWritableDatabase();
     }
 
-    public void insertToDB(String title, String pic_link){
+    public void insertToDB(String title, String pic){
         ContentValues contentValues = new ContentValues();
         contentValues.put(Constants.TITLE, String.valueOf(title));
-        contentValues.put(Constants.PIC, pic_link);
+        contentValues.put(Constants.PIC, pic);
         db.insert(Constants.TABLE_NAME, null, contentValues);
     }
 
-    public List<String> getFromDB(){
+    public List<String> getTitlesFromDB(){
         List<String> tempList = new ArrayList<>();
         Cursor cursor = db.query(Constants.TABLE_NAME, null, null,
                 null, null, null, null);
@@ -42,6 +42,14 @@ public class DBManager {
         cursor.close();
         return tempList;
     }
+
+    @SuppressLint("Range")
+    public String getPicFromDB(){
+        Cursor cursor = db.query(Constants.TABLE_NAME, null, null,
+                null, null, null, null);
+        return cursor.getString(cursor.getColumnIndex(Constants.PIC));
+    }
+
 
     public void closeDB(){
         dbHelper.close();

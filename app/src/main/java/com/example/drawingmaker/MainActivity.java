@@ -1,15 +1,19 @@
 package com.example.drawingmaker;
 
-import android.content.DialogInterface;
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
 import android.view.View.OnClickListener;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -18,52 +22,70 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener{
-    public DBManager dbManager;
+    @SuppressLint("StaticFieldLeak")
+    public static DBManager dbManager;
     private FloatingActionButton fab;
+    RecyclerView picList;
+    List<String> list;
+    PicAdapter picAdapter;
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
 
 
+    @SuppressLint("NotifyDataSetChanged")
+    ActivityResultLauncher<Intent> activityResultLauncherForNew = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+        list.clear();
+        list.addAll(dbManager.getTitlesFromDB());
+        picAdapter.notifyDataSetChanged();
+        setResult(12);
+        /*if (result.getResultCode() == 78){
+            Intent intent = result.getData();
+            if (intent != null){
+                String data = intent.getStringExtra("title");
+
+            }
+        }*/
+    });
+    ActivityResultLauncher<Intent> activityResultLauncherForOpen = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @SuppressLint("NotifyDataSetChanged")
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            list.clear();
+            dbManager.openDB();
+            list.addAll(dbManager.getTitlesFromDB());
+            picAdapter.notifyDataSetChanged();
+            setResult(45);
+            Intent intent = new Intent();
+            intent.putExtra("pic", list.get(0));
+        }
+    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE },
+                    REQUEST_EXTERNAL_STORAGE);
+        }
         fab = findViewById(R.id.fab);
-        RecyclerView picList = findViewById(R.id.picList);
+        picList = findViewById(R.id.picList);
         dbManager = new DBManager(this);
         dbManager.openDB();
-        List<String> list = dbManager.getFromDB();
-        PicAdapter picAdapter= new PicAdapter(this, list, new PicAdapter.OnItemClick() {
-            @Override
-            public void onClick(String item) {
-                startActivity(new Intent(MainActivity.this, PicActivity.class));
-            }
-        });
+        list = dbManager.getTitlesFromDB();
+        picAdapter = new PicAdapter(this, list, item -> activityResultLauncherForOpen.launch(new Intent(this, PicActivity.class)));
         picList.setLayoutManager(new LinearLayoutManager(this));
         picList.setAdapter(picAdapter);
         fab.setOnClickListener(this);
     }
 
+
     @Override
     public void onClick(View v) {
-        final EditText newTitle = new EditText(this);
-        AlertDialog.Builder newPicDialog = new AlertDialog.Builder(this);
-        newPicDialog.setTitle(R.string.new_pic);
-        newPicDialog.setMessage(R.string.new_title);
-        newPicDialog.setView(newTitle);
-        newPicDialog.setPositiveButton("Создать", new DialogInterface.OnClickListener(){
-            public void onClick(DialogInterface dialog, int which){
-                String sTitle = String.valueOf(newTitle.getText());
-                dbManager.insertToDB(sTitle, null);
-                dbManager.closeDB();
-                startActivity(new Intent(MainActivity.this, PicActivity.class));
-            }
-        });
-        newPicDialog.setNegativeButton("Отмена", new DialogInterface.OnClickListener(){
-            public void onClick(DialogInterface dialog, int which){
-                dialog.cancel();
-            }
-        });
-        newPicDialog.show();
+        activityResultLauncherForNew.launch(new Intent(this, PicActivity.class));
+        dbManager.closeDB();
     }
 
 
@@ -72,5 +94,4 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         super.onResume();
         dbManager.openDB();
     }
-
 }

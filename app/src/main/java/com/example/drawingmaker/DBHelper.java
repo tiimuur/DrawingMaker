@@ -23,4 +23,5 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL(Constants.TABLE_DELETE);
         onCreate(db);
     }
+
 }

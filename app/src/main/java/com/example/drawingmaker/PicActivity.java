@@ -1,24 +1,50 @@
 package com.example.drawingmaker;
 
+import static com.example.drawingmaker.MainActivity.dbManager;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
 import androidx.appcompat.app.AlertDialog;
-
 import android.annotation.SuppressLint;
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
+import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.app.Dialog;
 import android.view.View.OnClickListener;
 import android.os.Bundle;
+import android.widget.Toast;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.UUID;
 
 public class PicActivity extends AppCompatActivity implements OnClickListener {
 
     private int[] colors;
     private float smallBrush, mediumBrush, largeBrush;
     private DrawingView drawView;
+    private String tempPic = "empty";
+    private String tempTitle = "empty";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,8 +66,30 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
         eraseButton.setOnClickListener(this);
         ImageButton newButton = findViewById(R.id.new_btn);
         newButton.setOnClickListener(this);
+        ImageButton saveButton = findViewById(R.id.save_btn);
+        saveButton.setOnClickListener(this);
         drawView.setBrushSize(mediumBrush);
+    }
 
+    public Bitmap openBitmap(String uri){
+        try {
+            return MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(uri));
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            return null;
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == 45){
+            if (data != null) {
+                tempTitle = data.getStringExtra("pic");
+                drawView.setCanvasBitmap(openBitmap(tempTitle));
+            }
+        }
     }
 
     @Override
@@ -192,18 +240,37 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
             AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
             newDialog.setTitle(R.string.new_pic);
             newDialog.setMessage("Создать новый рисунок?\n(ты потеряешь текущий рисунок)");
-            newDialog.setPositiveButton("Да", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    drawView.startNew();
-                    dialog.dismiss();
-                }
+            newDialog.setPositiveButton("Да", (dialog, which) -> {
+                drawView.startNew();
+                dialog.dismiss();
             });
-            newDialog.setNegativeButton("Отмена", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int which){
-                    dialog.cancel();
-                }
-            });
+            newDialog.setNegativeButton("Отмена", (dialog, which) -> dialog.cancel());
             newDialog.show();
+        } else if (v.getId() == R.id.save_btn){
+            final EditText title = new EditText(this);
+            AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
+            saveDialog.setTitle("Сохранение рисунка");
+            saveDialog.setMessage("Сохранить рисунок?");
+            saveDialog.setView(title);
+            saveDialog.setPositiveButton("Да", (dialog, which) -> {
+                drawView.setDrawingCacheEnabled(true);
+                String temp = title.getText().toString();
+                tempPic = MediaStore.Images.Media.insertImage(
+                        getContentResolver(), drawView.getDrawingCache(),
+                        temp + ".png", "drawing");
+                if (tempPic != null) {
+                    dbManager.openDB();
+                    dbManager.insertToDB(temp, tempPic);
+                    Toast.makeText(this, "Сохранено", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast unsavedToast = Toast.makeText(getApplicationContext(),
+                            "Упс.. Ошибка", Toast.LENGTH_SHORT);
+                    unsavedToast.show();
+                }
+            }).setNegativeButton("Отмена", (dialog, which) -> dialog.cancel());
+            saveDialog.show();
         }
     }
+
+
 }
