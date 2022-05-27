@@ -12,4 +12,7 @@
     <string name="new_pic">Новый рисунок </string>
     <string name="new_title">Введите заголовок</string>
     <string name="create">Создать</string>
+    <string name="last">last</string>
+    <string name="next">next</string>
+    <string name="fab_description">CreatePic</string>
 </resources>

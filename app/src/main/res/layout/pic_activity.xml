@@ -16,33 +16,37 @@
         <ImageButton
             android:id="@+id/new_btn"
             android:layout_width="50sp"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:contentDescription="@string/start_new"
-            android:src="@drawable/new_pic"
+            android:src="@drawable/ic_delete"
+            android:background="@color/black"
             android:layout_marginHorizontal="10sp"/>
 
         <ImageButton
             android:id="@+id/draw_btn"
             android:layout_width="50sp"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:contentDescription="@string/brush"
-            android:src="@drawable/brush"
+            android:src="@drawable/ic_brush"
+            android:background="@color/black"
             android:layout_marginHorizontal="10sp"/>
 
         <ImageButton
             android:id="@+id/erase_btn"
             android:layout_width="50sp"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:contentDescription="@string/erase"
-            android:src="@drawable/eraser"
+            android:src="@drawable/ic_eraser"
+            android:background="@color/black"
             android:layout_marginHorizontal="10sp"/>
 
         <ImageButton
             android:id="@+id/save_btn"
             android:layout_width="50sp"
-            android:layout_height="fill_parent"
+            android:layout_height="match_parent"
             android:contentDescription="@string/save"
-            android:src="@drawable/save"
+            android:background="@color/black"
+            android:src="@drawable/ic_save"
             android:layout_marginHorizontal="10sp"/>
 
         <ImageButton
@@ -50,8 +54,9 @@
             android:layout_width="50sp"
             android:layout_height="fill_parent"
             android:contentDescription="@string/colorChanging"
-            android:src="@drawable/rgbwheel"
-            android:layout_marginHorizontal="10sp"/>
+            android:src="@drawable/rgb_wheel"
+            android:background="@color/black"
+            android:layout_marginHorizontal="10sp" />
     </LinearLayout>
 
     <com.example.drawingmaker.DrawingView

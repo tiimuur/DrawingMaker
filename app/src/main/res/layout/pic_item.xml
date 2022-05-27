@@ -9,7 +9,9 @@
         android:id="@+id/pic_name"
         android:layout_width="match_parent"
         android:layout_height="50sp"
-        android:textSize="25sp"
+        android:fontFamily="serif"
         android:padding="10sp"
-        android:text="" />
+        android:text=""
+        android:textColor="@color/black"
+        android:textSize="25sp" />
 </androidx.appcompat.widget.LinearLayoutCompat>

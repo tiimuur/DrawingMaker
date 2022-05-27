@@ -4,7 +4,11 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.TypefaceSpan;
 import android.view.View;
 import android.view.View.OnClickListener;
 
@@ -12,6 +16,7 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,10 +25,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener{
     @SuppressLint("StaticFieldLeak")
-    public static DBManager dbManager;
+    private DBManager dbManager;
     private FloatingActionButton fab;
     RecyclerView picList;
     List<String> list;
@@ -34,6 +40,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     @SuppressLint("NotifyDataSetChanged")
     ActivityResultLauncher<Intent> activityResultLauncherForNew = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
         list.clear();
+        dbManager.openDB();
         list.addAll(dbManager.getTitlesFromDB());
         picAdapter.notifyDataSetChanged();
         setResult(12);
@@ -45,24 +52,25 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
             }
         }*/
     });
-    ActivityResultLauncher<Intent> activityResultLauncherForOpen = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-        @SuppressLint("NotifyDataSetChanged")
-        @Override
-        public void onActivityResult(ActivityResult result) {
+    @SuppressLint("NotifyDataSetChanged")
+    ActivityResultLauncher<Intent> activityResultLauncherForOpen = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result ->  {
             list.clear();
             dbManager.openDB();
             list.addAll(dbManager.getTitlesFromDB());
             picAdapter.notifyDataSetChanged();
             setResult(45);
-            Intent intent = new Intent();
-            intent.putExtra("pic", list.get(0));
-        }
+            /*Intent intent = new Intent();
+            intent.putExtra("pic", list.get(0));*/
     });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        init();
+    }
+
+    private void init(){
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
