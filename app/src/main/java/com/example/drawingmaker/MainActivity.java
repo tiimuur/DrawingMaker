@@ -4,64 +4,33 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.style.TypefaceSpan;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.ActionBar;
+import android.widget.SearchView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.List;
-import java.util.Objects;
+
 
 public class MainActivity extends AppCompatActivity implements OnClickListener{
     @SuppressLint("StaticFieldLeak")
     private DBManager dbManager;
-    private FloatingActionButton fab;
     RecyclerView picList;
-    List<String> list;
+    List<ListItem> list;
     PicAdapter picAdapter;
     private static final int REQUEST_EXTERNAL_STORAGE = 1;
 
 
-    @SuppressLint("NotifyDataSetChanged")
-    ActivityResultLauncher<Intent> activityResultLauncherForNew = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        list.clear();
-        dbManager.openDB();
-        list.addAll(dbManager.getTitlesFromDB());
-        picAdapter.notifyDataSetChanged();
-        setResult(12);
-        /*if (result.getResultCode() == 78){
-            Intent intent = result.getData();
-            if (intent != null){
-                String data = intent.getStringExtra("title");
-
-            }
-        }*/
-    });
-    @SuppressLint("NotifyDataSetChanged")
-    ActivityResultLauncher<Intent> activityResultLauncherForOpen = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result ->  {
-            list.clear();
-            dbManager.openDB();
-            list.addAll(dbManager.getTitlesFromDB());
-            picAdapter.notifyDataSetChanged();
-            setResult(45);
-            /*Intent intent = new Intent();
-            intent.putExtra("pic", list.get(0));*/
-    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +38,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
         setContentView(R.layout.main_activity);
         init();
     }
-
     private void init(){
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
@@ -78,22 +46,56 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE },
                     REQUEST_EXTERNAL_STORAGE);
         }
-        fab = findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         picList = findViewById(R.id.picList);
         dbManager = new DBManager(this);
         dbManager.openDB();
-        list = dbManager.getTitlesFromDB();
-        picAdapter = new PicAdapter(this, list, item -> activityResultLauncherForOpen.launch(new Intent(this, PicActivity.class)));
+        list = dbManager.getFromDB();
+        picAdapter = new PicAdapter(this, list);
         picList.setLayoutManager(new LinearLayoutManager(this));
         picList.setAdapter(picAdapter);
+        itemTouchHelper().attachToRecyclerView(picList);
         fab.setOnClickListener(this);
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.search, menu);
+        MenuItem menuItem = menu.findItem(R.id.search_view);
+        SearchView searchView = (SearchView) menuItem.getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                picAdapter.updateAdapter(dbManager.getFromDB(newText));
+                return false;
+            }
+        });
+        return super.onCreateOptionsMenu(menu);
+    }
 
     @Override
     public void onClick(View v) {
-        activityResultLauncherForNew.launch(new Intent(this, PicActivity.class));
+        startActivity(new Intent(this, PicActivity.class));
         dbManager.closeDB();
+    }
+
+    private ItemTouchHelper itemTouchHelper(){
+        return new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
+
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
+                picAdapter.removeItem(viewHolder.getAdapterPosition(), dbManager);
+            }
+        });
     }
 
 
@@ -101,5 +103,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener{
     protected void onResume() {
         super.onResume();
         dbManager.openDB();
+        picAdapter.updateAdapter(dbManager.getFromDB());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        dbManager.closeDB();
     }
 }

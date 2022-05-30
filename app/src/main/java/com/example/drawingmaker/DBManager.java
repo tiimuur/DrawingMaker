@@ -5,19 +5,16 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Path;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DBManager {
-    private Context context;
-    private DBHelper dbHelper;
+    private final DBHelper dbHelper;
     private SQLiteDatabase db;
 
     public DBManager(Context context) {
-        this.context = context;
         dbHelper = new DBHelper(context);
     }
 
@@ -25,66 +22,58 @@ public class DBManager {
         db = dbHelper.getWritableDatabase();
     }
 
-    public void insertToDB(String title, byte[] move, byte[] colors, byte[] brushes){
+    public void insertToDB(String title, String pic){
         ContentValues contentValues = new ContentValues();
         contentValues.put(Constants.TITLE, String.valueOf(title));
-        contentValues.put(Constants.MOVE, move);
-        contentValues.put(Constants.COLOR, colors);
-        contentValues.put(Constants.BRUSH, brushes);
-        db.insert(Constants.TABLE_NAME, null, contentValues);
-    }
-    public void insertToDB(String title){
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Constants.TITLE, String.valueOf(title));
+        contentValues.put(Constants.PIC, String.valueOf(pic));
         db.insert(Constants.TABLE_NAME, null, contentValues);
     }
 
-    public void insertToDB(byte[] move){
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(Constants.MOVE, move);
-        db.insert(Constants.TABLE_NAME, null, contentValues);
+    public void deleteInDB(int id){
+        String selection = Constants._ID + "=" + id;
+        db.delete(Constants.TABLE_NAME, selection, null);
     }
 
-    public List<String> getTitlesFromDB(){
-        List<String> tempList = new ArrayList<>();
-        Cursor cursor = db.query(Constants.TABLE_NAME, null, null,
-                null, null, null, null);
+    @SuppressLint("Range")
+    public List<ListItem> getFromDB(String searching){
+        List<ListItem> tempList = new ArrayList<>();
+        String selection = Constants.TITLE + " like ?";
+        Cursor cursor = db.query(Constants.TABLE_NAME, null, selection,
+                new String[]{"%" + searching + "%"}, null, null, null);
         while (cursor.moveToNext()){
-            @SuppressLint("Range") String title = cursor.getString(cursor.getColumnIndex(Constants.TITLE));
-            tempList.add(title);
+            ListItem item = new ListItem();
+            String title = cursor.getString(cursor.getColumnIndex(Constants.TITLE));
+            String pic = cursor.getString(cursor.getColumnIndex(Constants.PIC));
+            int _id = cursor.getInt(cursor.getColumnIndex(Constants._ID));
+            item.setId(_id);
+            item.setTitle(title);
+            item.setPic(pic);
+            tempList.add(item);
         }
         cursor.close();
         return tempList;
     }
-    @SuppressLint("Range")
-    public byte[] getMoveListFromDB(String title){
-        byte[] move;
-        Cursor cursor = db.query(Constants.TABLE_NAME, null, Constants.MOVE_SELECTION + title,
-                null, null, null, null);
-        move = cursor.getBlob(cursor.getColumnIndex(Constants.MOVE));
-        cursor.close();
-        return move;
-    }
 
     @SuppressLint("Range")
-    public byte[] getColorListFromDB(String title){
-        byte[] move;
-        Cursor cursor = db.query(Constants.TABLE_NAME, null, Constants.MOVE_SELECTION + title,
+    public List<ListItem> getFromDB(){
+        List<ListItem> tempList = new ArrayList<>();
+        Cursor cursor = db.query(Constants.TABLE_NAME, null, null,
                 null, null, null, null);
-        move = cursor.getBlob(cursor.getColumnIndex(Constants.MOVE));
+        while (cursor.moveToNext()){
+            ListItem item = new ListItem();
+            String title = cursor.getString(cursor.getColumnIndex(Constants.TITLE));
+            String pic = cursor.getString(cursor.getColumnIndex(Constants.PIC));
+            int _id = cursor.getInt(cursor.getColumnIndex(Constants._ID));
+            item.setId(_id);
+            item.setTitle(title);
+            item.setPic(pic);
+            tempList.add(item);
+        }
         cursor.close();
-        return move;
+        return tempList;
     }
 
-    @SuppressLint("Range")
-    public byte[] getBrushListFromDB(String title){
-        byte[] move;
-        Cursor cursor = db.query(Constants.TABLE_NAME, null, Constants.MOVE_SELECTION + title,
-                null, null, null, null);
-        move = cursor.getBlob(cursor.getColumnIndex(Constants.MOVE));
-        cursor.close();
-        return move;
-    }
+
 
     public void closeDB(){
         dbHelper.close();

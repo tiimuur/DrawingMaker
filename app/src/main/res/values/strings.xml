@@ -15,4 +15,18 @@
     <string name="last">last</string>
     <string name="next">next</string>
     <string name="fab_description">CreatePic</string>
+    <string name="choose_brush_size">Выберите размер кисти:</string>
+    <string name="ok">OK</string>
+    <string name="choose_brush_opacity">Выберите прозрачность кисти:</string>
+    <string name="cancel">Отмена</string>
+    <string name="hint">Впишите название рисунка</string>
+    <string name="saving_pic">Сохранение рисунка</string>
+    <string name="yes">Да</string>
+    <string name="deleting">Создать новый рисунок?\n(ты потеряешь текущий рисунок)</string>
+    <string name="dp">dp</string>
+    <string name="brush_size">Размер кисти:</string>
+    <string name="color_choosing">Выбор цвета:</string>
+    <string name="saved">Сохранено</string>
+    <string name="error">Ошибка</string>
+    <string name="searchview">SearchView</string>
 </resources>

@@ -1,57 +1,42 @@
 package com.example.drawingmaker;
 
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.ColorDrawable;
-import android.media.Image;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.app.Dialog;
 import android.view.View.OnClickListener;
 import android.os.Bundle;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Objects;
-import java.util.UUID;
 
 public class PicActivity extends AppCompatActivity implements OnClickListener {
 
     private DBManager dbManager;
     private int[] colors;
-    private float smallBrush, mediumBrush, largeBrush;
     private DrawingView drawView;
     private String tempPic = "empty";
-    private String tempTitle = "empty";
-    private static final int MENU_LAST = 2131230972;
+    private String tempTitle;
+    private static final int MENU_LAST = 2131230974;
     private static final int MENU_NEXT = 2131231052;
-
+    private Drawable savedPic;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,9 +52,7 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
                 getResources().getInteger(R.integer.yellow), getResources().getInteger(R.integer.green), getResources().getInteger(R.integer.turquoise),
                 getResources().getInteger(R.integer.blue), getResources().getInteger(R.integer.purple), getResources().getInteger(R.integer.coral),
                 getResources().getInteger(R.integer.white), getResources().getInteger(R.integer.grey), getResources().getInteger(R.integer.black)};
-        smallBrush = getResources().getInteger(R.integer.small_size);
-        mediumBrush = getResources().getInteger(R.integer.medium_size);
-        largeBrush = getResources().getInteger(R.integer.large_size);
+        int startBrush = getResources().getInteger(R.integer.medium_size);
         ImageButton brushButton = findViewById(R.id.draw_btn);
         brushButton.setOnClickListener(this);
         ImageButton colorButton = findViewById(R.id.colorButton);
@@ -80,8 +63,29 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
         newButton.setOnClickListener(this);
         ImageButton saveButton = findViewById(R.id.save_btn);
         saveButton.setOnClickListener(this);
-        drawView.setBrushSize(mediumBrush);
+        drawView.setBrushSize(startBrush);
+        resumePainting();
     }
+
+    public void resumePainting(){
+        Intent intent = getIntent();
+        if (intent != null){
+            ListItem item = (ListItem) intent.getSerializableExtra(Constants.LIST_ITEM_KEY);
+            boolean isNew = intent.getBooleanExtra(Constants.NEW_KEY, true);
+            if(!isNew){
+                try {
+                    Uri uri = Uri.parse(item.getPic());
+                    InputStream inputStream = getContentResolver().openInputStream(uri);
+                    savedPic = Drawable.createFromStream(inputStream, uri.toString());
+                } catch (FileNotFoundException e) {
+                    Log.d("someTAG", e.getMessage());
+                }
+                drawView.setBackground(savedPic);
+                System.out.println(item.getPic());
+            }
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -100,55 +104,68 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
 
     }
 
-    /*@Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == 45) {
-            if (data != null) {
-                tempTitle = data.getStringExtra("pic");
-                String select = "SELECT pic FROM Pictures WHERE title = " + tempTitle;
-                drawView.setCanvasBitmap(openBitmap(select));
-                Toast.makeText(this, select, Toast.LENGTH_LONG).show();
-            }
-        }
-    }*/
 
+    @SuppressLint({"SetTextI18n", "ResourceAsColor"})
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.draw_btn) {
             final Dialog brushDialog = new Dialog(this);
-            brushDialog.setTitle("Размер кисти:");
+            brushDialog.setTitle(getString(R.string.brush_size));
             brushDialog.setContentView(R.layout.brush_chooser);
-            ImageButton smallBtn = brushDialog.findViewById(R.id.small_brush);
-            ImageButton mediumBtn = brushDialog.findViewById(R.id.medium_brush);
-            ImageButton largeBtn = brushDialog.findViewById(R.id.large_brush);
-            drawView.setErase(false);
-            @SuppressLint("NonConstantResourceId") View.OnClickListener onClickListener = v1 -> {
-                switch (v1.getId()) {
-                    case R.id.small_brush:
-                        drawView.setBrushSize(smallBrush);
-                        drawView.setLastBrushSize(smallBrush);
-                        break;
-                    case R.id.medium_brush:
-                        drawView.setBrushSize(mediumBrush);
-                        drawView.setLastBrushSize(mediumBrush);
-                        break;
-                    case R.id.large_brush:
-                        drawView.setBrushSize(largeBrush);
-                        drawView.setLastBrushSize(largeBrush);
-                        break;
+            final TextView text_brush_size = brushDialog.findViewById(R.id.brush_size);
+            final TextView text_alpha = brushDialog.findViewById(R.id.brush_opacity);
+            final SeekBar seek_brush_size = brushDialog.findViewById(R.id.brush_size_seek);
+            final SeekBar seek_alpha = brushDialog.findViewById(R.id.brush_opacity_seek);
+            int currBrush = drawView.getSeekBrushSize();
+            seek_brush_size.setMax(50);
+            text_brush_size.setText(currBrush + getString(R.string.dp));
+            seek_brush_size.setProgress(currBrush);
+            seek_brush_size.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @SuppressLint("SetTextI18n")
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    text_brush_size.setText(progress + getString(R.string.dp));
                 }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
+            });
+            int currAlpha = drawView.getPaintAlpha();
+            seek_alpha.setMax(100);
+            text_alpha.setText(currAlpha + "%");
+            seek_alpha.setProgress(currAlpha);
+            seek_alpha.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    text_alpha.setText(progress + "%");
+                    drawView.setErase(false);
+                }
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+
+                }
+            });
+            Button brushButtonChooser = brushDialog.findViewById(R.id.ok);
+            brushButtonChooser.setOnClickListener(v1 -> {
+                drawView.setBrushSize(seek_brush_size.getProgress());
+                drawView.setPaintAlpha(seek_alpha.getProgress());
                 brushDialog.dismiss();
-            };
-
-
-            smallBtn.setOnClickListener(onClickListener);
-            mediumBtn.setOnClickListener(onClickListener);
-            largeBtn.setOnClickListener(onClickListener);
+            });
             brushDialog.show();
         } else if (v.getId() == R.id.colorButton) {
             final Dialog colorDialog = new Dialog(this);
-            colorDialog.setTitle("Выбор цвета:");
+            colorDialog.setTitle(R.string.color_choosing);
             colorDialog.setContentView(R.layout.color_chooser);
             ImageButton brownButton = colorDialog.findViewById(R.id.brownButton);
             ImageButton redButton = colorDialog.findViewById(R.id.redButton);
@@ -162,9 +179,7 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
             ImageButton whiteButton = colorDialog.findViewById(R.id.whiteButton);
             ImageButton greyButton = colorDialog.findViewById(R.id.greyButton);
             ImageButton blackButton = colorDialog.findViewById(R.id.blackButton);
-
             @SuppressLint("NonConstantResourceId") View.OnClickListener onClickListener = v12 -> {
-                drawView.setBrushSize(drawView.getLastBrushSize());
                 drawView.setErase(false);
                 switch (v12.getId()) {
                     case R.id.brownButton:
@@ -220,64 +235,45 @@ public class PicActivity extends AppCompatActivity implements OnClickListener {
             blackButton.setOnClickListener(onClickListener);
             colorDialog.show();
         } else if (v.getId() == R.id.erase_btn) {
-            final Dialog eraseDialog = new Dialog(this);
-            eraseDialog.setTitle("Размер ластика:");
-            eraseDialog.setContentView(R.layout.brush_chooser);
-            ImageButton smallBtn = eraseDialog.findViewById(R.id.small_brush);
-            ImageButton mediumBtn = eraseDialog.findViewById(R.id.medium_brush);
-            ImageButton largeBtn = eraseDialog.findViewById(R.id.large_brush);
-            @SuppressLint("NonConstantResourceId") View.OnClickListener onClickListener = v1 -> {
-                drawView.setErase(true);
-                switch (v1.getId()) {
-                    case R.id.small_brush:
-                        drawView.setBrushSize(smallBrush);
-                        break;
-                    case R.id.medium_brush:
-                        drawView.setBrushSize(mediumBrush);
-                        break;
-                    case R.id.large_brush:
-                        drawView.setBrushSize(largeBrush);
-                        break;
-                }
-                eraseDialog.dismiss();
-            };
-            smallBtn.setOnClickListener(onClickListener);
-            mediumBtn.setOnClickListener(onClickListener);
-            largeBtn.setOnClickListener(onClickListener);
-            eraseDialog.show();
+            drawView.setErase(true);
         } else if (v.getId() == R.id.new_btn) {
             AlertDialog.Builder newDialog = new AlertDialog.Builder(this);
-            newDialog.setTitle(R.string.new_pic);
-            newDialog.setMessage("Создать новый рисунок?\n(ты потеряешь текущий рисунок)");
-            newDialog.setPositiveButton("Да", (dialog, which) -> {
+            newDialog.setTitle(getString(R.string.new_pic));
+            newDialog.setMessage(getString(R.string.deleting));
+            newDialog.setPositiveButton(R.string.yes, (dialog, which) -> {
+                drawView.setBackgroundColor(0);
                 drawView.startNew();
                 dialog.dismiss();
             });
-            newDialog.setNegativeButton("Отмена", (dialog, which) -> dialog.cancel());
+            newDialog.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel());
             newDialog.show();
         } else if (v.getId() == R.id.save_btn) {
-            final EditText title = new EditText(this);
+            final EditText editableTitle = new EditText(this);
             AlertDialog.Builder saveDialog = new AlertDialog.Builder(this);
-            saveDialog.setTitle("Сохранение рисунка");
-            saveDialog.setMessage("Сохранить рисунок?");
-            saveDialog.setView(title);
-            saveDialog.setPositiveButton("Да", (dialog, which) -> {
+            saveDialog.setTitle(getString(R.string.saving_pic));
+            saveDialog.setView(editableTitle);
+            editableTitle.setHint(getString(R.string.hint));
+            saveDialog.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
+                tempTitle = editableTitle.getText().toString();
                 drawView.setDrawingCacheEnabled(true);
-                String temp = title.getText().toString();
                 tempPic = MediaStore.Images.Media.insertImage(
-                        getContentResolver(), drawView.getDrawingCache(),
-                        temp + ".png", "drawing");
+                      getContentResolver(), drawView.getDrawingCache(),
+                      tempTitle + ".png", "drawing");
                 if (tempPic != null) {
                     dbManager.openDB();
-                    dbManager.insertToDB(temp, drawView.getMoveArray(), drawView.getColorArray(), drawView.getBrushArray());
-                    Toast.makeText(this, "Сохранено", Toast.LENGTH_LONG).show();
+                  try {
+                      dbManager.insertToDB(tempTitle, tempPic);
+                      Toast.makeText(this, getString(R.string.saved), Toast.LENGTH_LONG).show();
+
+                  } catch (Exception e){
+                      Toast.makeText(this, getString(R.string.error) + e.getMessage(), Toast.LENGTH_SHORT).show();
+                  }
+
                 } else {
-                    Toast.makeText(this, "Упс.. Ошибка", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, getString(R.string.error), Toast.LENGTH_SHORT).show();
                 }
-            }).setNegativeButton("Отмена", (dialog, which) -> dialog.cancel());
+            }).setNegativeButton(getString(R.string.cancel), (dialog, which) -> dialog.cancel());
             saveDialog.show();
         }
     }
-
-
 }
