@@ -68,7 +68,6 @@ public class DrawingView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        System.out.println(currentBrushList + "\n" + brushList);
         for (int i = 0; i < currentMoveList.size(); i++) {
             if (currentColorList.size() != 0)
                 drawPaint.setColor(currentColorList.get(i));
